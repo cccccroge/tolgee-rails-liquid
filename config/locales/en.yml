@@ -28,4 +28,5 @@
 #       enabled: "ON"
 
 en:
-  hello: "Hello world"
+  hello: Hello world
+  hello_with_params: Hello, %{name}!
