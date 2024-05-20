@@ -21,30 +21,41 @@ class ZeroWidthCharacterEncoder
 end
 
 class Translate
-  def initialize(credentials)
-    @tolgee_api_url = credentials[:api_url]
-    @tolgee_api_key = credentials[:api_key]
-    @tolgee_project_id = credentials[:project_id]
+  def initialize
+    @tolgee_api_url = Tolgee.configuration.api_url
+    @tolgee_api_key = Tolgee.configuration.api_key
+    @tolgee_project_id = Tolgee.configuration.project_id
+    @static_data = Tolgee.configuration.static_data
+    @language = Tolgee.configuration.language
   end
 
   def execute(name, vars = {})
     translation =
       if development?
-        dict = get_remote_dict('en')
+        dict = get_remote_dict(@language.to_s)
         string = fetch_translation(dict, name)
-        I18n.interpolate(string, **vars.transform_keys(&:to_sym))
+        MessageFormat.new(string, @language.to_s).format(vars.transform_keys(&:to_sym))
       else
-        I18n.t(name, **vars.transform_keys(&:to_sym))
+        dict = @static_data[@language.to_sym]
+        string = fetch_translation(dict, name)
+        MessageFormat.new(string, @language.to_s).format(vars.transform_keys(&:to_sym))
       end
-    message = { k: name }.to_json
-    hidden_message = ZeroWidthCharacterEncoder.new.execute(message)
-    "#{translation}#{hidden_message}"
+
+    # TODO: need a way to sync with client side
+    if development?
+      message = { k: name }.to_json
+      hidden_message = ZeroWidthCharacterEncoder.new.execute(message)
+      "#{translation}#{hidden_message}"
+    else
+      translation
+    end
   end
 
   def development?
     true
   end
 
+  # TODO: show name if not found
   def fetch_translation(dict, name)
     name.split('.'.freeze).reduce(dict) do |level, cur|
       return nil if level[cur].nil?
@@ -53,6 +64,7 @@ class Translate
     end
   end
 
+  # TODO: error handling
   def get_remote_dict(language)
     @remote_dict ||= begin
       url = URI("#{@tolgee_api_url}/v2/projects/#{@tolgee_project_id}/translations/#{language}")
@@ -71,13 +83,29 @@ end
 
 module TolgeeFilter
   def t(name, vars = {})
-    translate = Translate.new({
-      api_url: 'http://localhost:8085',
-      api_key: 'tgpak_gjpwcmdunfzdk3dhg5sdo2thgzudqmjvg5thanjtnfvhc',
-      project_id: '2',
-    })
-    translate.execute(name, vars)
+    Translate.new.execute(name, vars)
   end
 end
+
+module Tolgee
+  class << self
+    attr_accessor :configuration
+
+    def configure
+      self.configuration ||= Configuration.new
+      yield(configuration)
+    end
+
+    class Configuration
+      attr_accessor :api_url, :api_key, :project_id, :static_data, :language
+
+      def initialize
+        @static_data = {}
+      end
+    end
+  end
+end
+
+# TODO: how to wrap a defined `t`?
 
 Liquid::Template.register_filter(TolgeeFilter)

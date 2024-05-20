@@ -68,3 +68,5 @@ group :test do
 end
 
 gem "liquid", "~> 5.5"
+
+gem "message_format", "~> 0.0.8"
