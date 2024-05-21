@@ -3,6 +3,6 @@ class PagesController < ApplicationController
     path = Rails.root.join('app/views/layouts/liquid/page.liquid')
     liquid = File.read(path)
     template = Liquid::Template.parse(liquid)
-    @content = template.render
+    @content = template.render({}, registers: { locale: 'zh-TW' })
   end
 end
