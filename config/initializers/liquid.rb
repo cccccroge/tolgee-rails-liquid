@@ -25,33 +25,31 @@ class Translate
     @tolgee_api_url = Tolgee.configuration.api_url
     @tolgee_api_key = Tolgee.configuration.api_key
     @tolgee_project_id = Tolgee.configuration.project_id
-    @static_data = Tolgee.configuration.static_data
   end
 
-  def execute(name, vars = {}, locale)
+  def execute(name, vars = {}, opts)
+    locale = opts[:locale]
+    dev_mode = opts[:mode] == 'development'
+    static_data = opts[:static_data]
+
     translation =
-      if development?
+      if dev_mode
         dict = get_remote_dict(locale.to_s)
         string = fetch_translation(dict, name)
         MessageFormat.new(string, locale.to_s).format(vars.transform_keys(&:to_sym))
       else
-        dict = @static_data[locale.to_sym]
+        dict = static_data[locale.to_sym]
         string = fetch_translation(dict, name)
         MessageFormat.new(string, locale.to_s).format(vars.transform_keys(&:to_sym))
       end
 
-    # TODO: need a way to sync with client side
-    if development?
+    if dev_mode
       message = { k: name }.to_json
       hidden_message = ZeroWidthCharacterEncoder.new.execute(message)
       "#{translation}#{hidden_message}"
     else
       translation
     end
-  end
-
-  def development?
-    true
   end
 
   # TODO: show name if not found
@@ -82,8 +80,12 @@ end
 
 module TolgeeFilter
   def t(name, vars = {})
-    locale = @context.registers[:locale] || I18n.default_locale
-    Translate.new.execute(name, vars, locale)
+    opts = {
+      locale: @context.registers[:locale] || I18n.default_locale,
+      mode: @context.registers[:mode] || 'production',
+      static_data: @context.registers[:static_data] || {},
+    }
+    Translate.new.execute(name, vars, opts)
   end
 end
 
@@ -96,12 +98,12 @@ module Tolgee
       yield(configuration)
     end
 
-    class Configuration
-      attr_accessor :api_url, :api_key, :project_id, :static_data
+    def liquid_registers(options)
+      options.slice(:locale, :static_data, :mode)
+    end
 
-      def initialize
-        @static_data = {}
-      end
+    class Configuration
+      attr_accessor :api_url, :api_key, :project_id
     end
   end
 end
