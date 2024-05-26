@@ -32,16 +32,11 @@ class Translate
     dev_mode = opts[:mode] == 'development'
     static_data = opts[:static_data]
 
-    translation =
-      if dev_mode
-        dict = get_remote_dict(locale.to_s)
-        string = fetch_translation(dict, name)
-        MessageFormat.new(string, locale.to_s).format(vars.transform_keys(&:to_sym))
-      else
-        dict = static_data[locale.to_sym]
-        string = fetch_translation(dict, name)
-        MessageFormat.new(string, locale.to_s).format(vars.transform_keys(&:to_sym))
-      end
+    dict = dev_mode ? get_remote_dict(locale.to_s) : static_data[locale.to_sym]
+    value = fetch_translation(dict, name)
+    return name if value.nil?
+
+    translation = MessageFormat.new(value, locale.to_s).format(vars.transform_keys(&:to_sym))
 
     if dev_mode
       message = { k: name }.to_json
@@ -52,7 +47,6 @@ class Translate
     end
   end
 
-  # TODO: show name if not found
   def fetch_translation(dict, name)
     name.split('.'.freeze).reduce(dict) do |level, cur|
       return nil if level[cur].nil?
