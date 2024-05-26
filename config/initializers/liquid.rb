@@ -55,7 +55,6 @@ class Translate
     end
   end
 
-  # TODO: error handling
   def get_remote_dict(locale)
     @remote_dict ||= begin
       url = URI("#{@tolgee_api_url}/v2/projects/#{@tolgee_project_id}/translations/#{locale}")
@@ -68,6 +67,8 @@ class Translate
 
       response = http.request(request)
       JSON.parse(response.body)[locale]
+    rescue
+      {}
     end
   end
 end
