@@ -70,3 +70,5 @@ end
 gem "liquid", "~> 5.5"
 
 gem "message_format", "~> 0.0.8"
+
+gem 'tolgee_liquid', '~> 0.1.1'
