@@ -11,7 +11,11 @@ An example project that demo [tolgee liquid](https://github.com/cccccroge/tolgee
 ## Demo
 ### production mode
 Go to `http://127.0.0.1:3000/demo?mode=production`
+<img width="648" alt="SCR-20240609-ujaj" src="https://github.com/cccccroge/tolgee-rails-liquid/assets/17543132/c5762aa3-5d6a-401f-82ec-47582d7d8218">
 
 ### development mode
-Go to `http://127.0.0.1:3000/demo?mode=development`
+Start your tolgee server and go to `http://127.0.0.1:3000/demo?mode=development`
+![demo_gif](https://github.com/cccccroge/tolgee-rails-liquid/assets/17543132/e1ff109b-c307-4133-9b6d-e8673db25d2a)
+
+
 
