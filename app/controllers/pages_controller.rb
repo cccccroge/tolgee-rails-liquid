@@ -5,7 +5,7 @@ class PagesController < ApplicationController
     template = Liquid::Template.parse(liquid)
     tolgee_registers = TolgeeLiquid.registers({
       locale: 'zh-TW',
-      mode: 'development',
+      mode: params[:mode],
       static_data: {
         en: YAML.load_file(Rails.root.join('config', 'locales', 'en.yml')),
         'zh-TW': YAML.load_file(Rails.root.join('config', 'locales', 'zh-TW.yml')),

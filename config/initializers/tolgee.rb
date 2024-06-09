@@ -1,5 +1,5 @@
 TolgeeLiquid.configure do |config|
-  config.api_url = 'http://localhost:8085'
-  config.api_key = 'tgpak_gjpti4lbgz2wk2tknbrwuyjqg5whazdlmn3gsmlmoj2xc'
-  config.project_id = '2'
+  config.api_url = Rails.application.credentials.dig(:tolgee, :api_url)
+  config.api_key = Rails.application.credentials.dig(:tolgee, :api_key)
+  config.project_id = Rails.application.credentials.dig(:tolgee, :project_id)
 end
